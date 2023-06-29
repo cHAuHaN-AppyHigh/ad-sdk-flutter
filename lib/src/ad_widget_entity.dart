@@ -8,21 +8,6 @@ import 'ad_entity.dart';
 class AdWidgetEntity extends AdEntity {
   AdWidgetEntity(super.appyhighId);
 
-  VoidCallback? onRefresh;
-
-  @override
-  Future<void> loadAd(
-      {required VoidCallback onAdLoaded,
-      required VoidCallback onAdFailedToLoad}) async {
-    super.loadAd(onAdLoaded: () {
-      onAdLoaded();
-      onRefresh?.call();
-    }, onAdFailedToLoad: () {
-      onRefresh?.call();
-      onAdFailedToLoad();
-    });
-  }
-
   Widget build() => (ad as WidgetAd).build();
 }
 
@@ -46,11 +31,12 @@ class _AdWidgetState extends State<AdWidget> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      widget.adEntity.onRefresh = () {
-        if (mounted) setState(() {});
-      };
-    });
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => _setListener());
+  }
+
+  ///Todo: Left
+  _setListener() async {
+    if (mounted) setState(() {});
   }
 
   @override

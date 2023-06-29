@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:adsdk/src/admanager/utils/admob_config.dart';
@@ -20,7 +21,7 @@ import 'internal/enums/ad_provider.dart';
 import 'internal/enums/ad_type.dart';
 import 'internal/listeners/ad_load_listener.dart';
 import 'internal/listeners/ad_show_listener.dart';
-import 'internal/models/api_response.dart';
+import 'internal/models/ad_entity_config.dart';
 
 abstract class AdEntity {
   final String appyhighId;
@@ -41,9 +42,16 @@ abstract class AdEntity {
   AdEntityConfig? _adConfig;
 
   Future<void> loadAd(
-          {required VoidCallback onAdLoaded,
-          required VoidCallback onAdFailedToLoad}) =>
-      _loadAd(onAdLoaded, onAdFailedToLoad);
+      {required VoidCallback onAdLoaded,
+      required VoidCallback onAdFailedToLoad}) async {
+    return _loadAd(() {
+      onAdLoaded();
+      AdSdkLogger.info('$appyhighId ${ad?.adId} loaded ${ad?.provider}');
+    }, () {
+      onAdFailedToLoad();
+      AdSdkLogger.info('$appyhighId ${ad?.adId} failed to load ${ad?.provider}');
+    });
+  }
 
   Future<void> _loadAd(
     VoidCallback onAdLoaded,
@@ -59,32 +67,36 @@ abstract class AdEntity {
     AdEntityConfig adConfig = _adConfig!;
 
     if (isPrimary) {
-      if (index < adConfig.primaryIds.length) {
+      try {
         _ad = _provideAd(
           adConfig.primaryIds[index],
           adConfig.primaryAdProvider,
-        )!;
-      } else {
-        return _loadAd(onAdLoaded, onAdFailedToLoad,
-            isPrimary: false, index: 0);
+        );
+      } catch (_) {
+        return _loadAd(
+          onAdLoaded,
+          onAdFailedToLoad,
+          isPrimary: false,
+          index: 0,
+        );
       }
     } else {
-      if (index < adConfig.secondaryIds.length) {
+      try {
         _ad = _provideAd(
           adConfig.secondaryIds[index],
           adConfig.secondaryAdProvider,
-        )!;
-      } else {
+        );
+      } catch (_) {
         onAdFailedToLoad();
         return;
       }
     }
-    _ad!.loadAd(
-        adLoadListener: CustomAdLoadListener(
-      onAdLoadSuccess: () {
-        onAdLoaded();
-      },
-      onAdLoadFailure: () {
+    AdSdkLogger.info(
+        '$appyhighId Loading ${_ad?.adId} for ${_ad?.provider} loadAd');
+    _loadAdWithMultipleTries(
+      _ad!,
+      onAdLoaded: onAdLoaded,
+      onAdFailedToLoad: () {
         _loadAd(
           onAdLoaded,
           onAdFailedToLoad,
@@ -92,14 +104,41 @@ abstract class AdEntity {
           index: ++index,
         );
       },
-    ));
+    );
+  }
+
+  _loadAdWithMultipleTries(
+    Ad ad, {
+    required VoidCallback onAdLoaded,
+    required VoidCallback onAdFailedToLoad,
+    int maxRetry = 3,
+  }) {
+    AdSdkLogger.info(
+        '$appyhighId Loading ${ad.adId} for ${ad.provider} loadAdWithMultipleTries $maxRetry');
+    ad.loadAd(
+      adLoadListener: CustomAdLoadListener(
+        onAdLoadSuccess: onAdLoaded,
+        onAdLoadFailure: () {
+          if (maxRetry > 0) {
+            _loadAdWithMultipleTries(
+              ad,
+              onAdLoaded: onAdLoaded,
+              onAdFailedToLoad: onAdFailedToLoad,
+              maxRetry: maxRetry - 1,
+            );
+          } else {
+            onAdFailedToLoad();
+          }
+        },
+      ),
+    );
   }
 
   bool get isActive => _adConfig != null && _adConfig!.isActive;
 
   void dispose() => _ad?.dispose();
 
-  Ad? _provideAd(String adId, AdProvider adProvider) {
+  Ad _provideAd(String adId, AdProvider adProvider) {
     AdUnitType adUnitType = _adConfig!.adType;
     switch (adProvider) {
       case AdProvider.admob:
@@ -127,7 +166,7 @@ abstract class AdEntity {
           case AdUnitType.interstitial:
             return AdManagerInterstitialAd(adId, adRequest: config.adRequest);
           default:
-            return null;
+            throw Exception();
         }
       case AdProvider.applovin:
         switch (adUnitType) {
@@ -140,7 +179,7 @@ abstract class AdEntity {
           case AdUnitType.rewardInterstitial:
             return ApplovinRewardedAd(adId);
           default:
-            return null;
+            throw Exception();
         }
     }
   }
