@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:applovin_max/applovin_max.dart';
 import 'package:adsdk/src/internal/enums/ad_provider.dart';
 import 'package:adsdk/src/internal/interstitial_ad/interstitial_ad.dart';
@@ -21,7 +22,6 @@ class ApplovinInterstitialAd extends InterstitialAd
 
   @override
   Future<void> loadAd({
-    int retryCounts = 3,
     required AdLoadListener adLoadListener,
   }) async {
     _loadListener = adLoadListener;
@@ -63,7 +63,11 @@ class ApplovinInterstitialAd extends InterstitialAd
       };
 
   @override
-  Function(MaxAd ad) get onAdHiddenCallback => (MaxAd ad) {};
+  Function(MaxAd ad) get onAdHiddenCallback => (MaxAd ad) {
+        if (ad.adUnitId == adId) {
+          _showListener.onAdClosed();
+        }
+      };
 
   @override
   Function(String adUnitId, MaxError error) get onAdLoadFailedCallback =>

@@ -23,7 +23,6 @@ class ApplovinAppOpenAd extends AppOpenAd implements AppOpenAdListener {
 
   @override
   Future<void> loadAd({
-    int retryCounts = 3,
     required AdLoadListener adLoadListener,
   }) async {
     _loadListener = adLoadListener;

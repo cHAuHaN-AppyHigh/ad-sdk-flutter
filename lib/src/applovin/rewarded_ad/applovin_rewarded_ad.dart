@@ -20,7 +20,6 @@ class ApplovinRewardedAd extends RewardedAd implements RewardedAdListener {
 
   @override
   Future<void> loadAd({
-    int retryCounts = 3,
     required AdLoadListener adLoadListener,
   }) async {
     _loadListener = adLoadListener;

@@ -11,8 +11,6 @@ class AdmobRewardedInterstitialAd extends RewardedAd {
 
   google_ads.RewardedInterstitialAd? _ad;
 
-  Completer _adCompleter = Completer();
-
   google_ads.RewardedInterstitialAd get rewardedInterstitialAd => _ad!;
 
   AdmobRewardedInterstitialAd(
@@ -22,10 +20,8 @@ class AdmobRewardedInterstitialAd extends RewardedAd {
 
   @override
   Future<void> loadAd({
-    int retryCounts = 3,
     required AdLoadListener adLoadListener,
   }) async {
-    _adCompleter = Completer();
     google_ads.RewardedInterstitialAd.load(
       adUnitId: adId,
       request: adRequest,
@@ -34,18 +30,9 @@ class AdmobRewardedInterstitialAd extends RewardedAd {
         onAdLoaded: (ad) {
           _ad = ad;
           adLoadListener.onAdLoaded();
-          _adCompleter.complete(null);
         },
         onAdFailedToLoad: (error) {
-          if (retryCounts > 0) {
-            loadAd(
-              retryCounts: retryCounts - 1,
-              adLoadListener: adLoadListener,
-            );
-          } else {
-            _adCompleter.complete(null);
-            adLoadListener.onFailedToLoadAd();
-          }
+          adLoadListener.onFailedToLoadAd();
         },
       ),
     );
@@ -55,12 +42,6 @@ class AdmobRewardedInterstitialAd extends RewardedAd {
   Future<void> show({
     required AdShowListener adShowListener,
   }) async {
-    Future.delayed(AdmobConfig().retryingDuration, () {
-      if (!_adCompleter.isCompleted) {
-        _adCompleter.complete(null);
-      }
-    });
-    await _adCompleter.future;
     if (_ad == null) {
       throw Exception('Ad not loaded');
     }

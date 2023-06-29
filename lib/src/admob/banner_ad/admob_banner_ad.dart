@@ -3,7 +3,6 @@ import 'package:adsdk/src/internal/enums/ad_provider.dart';
 import 'package:adsdk/src/internal/listeners/ad_load_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart' as google_ads;
-
 import '../../internal/enums/ad_size.dart';
 
 class AdmobBannerAd extends BannerAd {
@@ -46,8 +45,7 @@ class AdmobBannerAd extends BannerAd {
   }
 
   @override
-  Future<void> loadAd(
-      {int retryCounts = 3, required AdLoadListener adLoadListener}) async {
+  Future<void> loadAd({required AdLoadListener adLoadListener}) async {
     google_ads.BannerAd(
       size: _bannerSize,
       adUnitId: adId,

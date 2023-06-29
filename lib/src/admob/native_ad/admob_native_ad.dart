@@ -55,8 +55,7 @@ class AdmobNativeAd extends NativeAd {
   }
 
   @override
-  Future<void> loadAd(
-      {int retryCounts = 3, required AdLoadListener adLoadListener}) async {
+  Future<void> loadAd({required AdLoadListener adLoadListener}) async {
     google_ads.NativeAd(
       request: adRequest,
       adUnitId: adId,
