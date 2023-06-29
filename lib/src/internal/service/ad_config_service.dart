@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:adsdk/src/internal/models/ad_sdk_app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/api_response.dart';

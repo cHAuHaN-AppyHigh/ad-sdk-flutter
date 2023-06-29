@@ -2,6 +2,8 @@ import 'package:adsdk/adsdk.dart';
 import 'package:adsdk/src/internal/models/user_model.dart';
 import 'package:applovin_max/applovin_max.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'internal/models/ad_entity_config.dart';
+import 'internal/models/ad_sdk_app_config.dart';
 import 'internal/models/ad_sdk_configuration.dart';
 import 'internal/models/api_response.dart';
 import 'internal/service/ad_config_service.dart';

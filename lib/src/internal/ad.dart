@@ -10,7 +10,6 @@ abstract class Ad {
   Ad(this.adId);
 
   Future<void> loadAd({
-    int retryCounts = 3,
     required AdLoadListener adLoadListener,
   });
 
