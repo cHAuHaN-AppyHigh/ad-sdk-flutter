@@ -1,20 +1,19 @@
 import 'dart:async';
+import 'package:adsdk/src/applovin/app_open_ad/applovin_app_open_listener.dart';
+import 'package:adsdk/src/applovin/listeners/app_lovin_listener.dart';
 import 'package:applovin_max/applovin_max.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart' as google_ads;
-
 import '../../internal/app_open_ad/app_open_ad.dart';
 import '../../internal/enums/ad_provider.dart';
 import '../../internal/listeners/ad_load_listener.dart';
 import '../../internal/listeners/ad_show_listener.dart';
-import '../utils/admob_config.dart';
 
-class ApplovinAppOpenAd extends AppOpenAd implements AppOpenAdListener {
+class ApplovinAppOpenAd extends AppOpenAd implements ApplovinListener {
   MaxAd? _ad;
 
   MaxAd get appOpenAd => _ad!;
 
   ApplovinAppOpenAd(super.adId) {
-    AppLovinMAX.setAppOpenAdListener(this);
+    ApplovinAppOpenListener.instance.addListener(this);
   }
 
   late AdLoadListener _loadListener;
@@ -39,6 +38,7 @@ class ApplovinAppOpenAd extends AppOpenAd implements AppOpenAdListener {
 
   @override
   void dispose() {
+    ApplovinAppOpenListener.instance.removeListener(this);
     _ad = null;
   }
 
@@ -46,41 +46,20 @@ class ApplovinAppOpenAd extends AppOpenAd implements AppOpenAdListener {
   AdProvider get provider => AdProvider.applovin;
 
   @override
-  Function(MaxAd ad) get onAdClickedCallback => (MaxAd ad) {};
+  String get applovinAdId => adId;
 
   @override
-  Function(MaxAd ad, MaxError error) get onAdDisplayFailedCallback =>
-      (MaxAd ad, MaxError error) {
-        if (ad.adUnitId == adId) {
-          _showListener.onAdFailedToShow();
-        }
-      };
+  void onAdLoaded() => _loadListener.onAdLoaded();
 
   @override
-  Function(MaxAd ad) get onAdDisplayedCallback => (MaxAd ad) {
-        if (ad.adUnitId == adId) {
-          _showListener.onAdSuccess();
-        }
-      };
+  void onFailedToLoadAd() => _loadListener.onFailedToLoadAd();
 
   @override
-  Function(MaxAd ad) get onAdHiddenCallback => (MaxAd ad) {};
+  void onAdClosed() => _showListener.onAdClosed();
 
   @override
-  Function(String adUnitId, MaxError error) get onAdLoadFailedCallback =>
-      (String adUnitId, MaxError error) {
-        if (adUnitId == adId) {
-          _loadListener.onFailedToLoadAd();
-        }
-      };
+  void onAdFailedToShow() => _showListener.onAdFailedToShow();
 
   @override
-  Function(MaxAd ad) get onAdLoadedCallback => (MaxAd ad) {
-        if (ad.adUnitId == adId) {
-          _loadListener.onAdLoaded();
-        }
-      };
-
-  @override
-  Function(MaxAd ad)? get onAdRevenuePaidCallback => (MaxAd ad) {};
+  void onAdSuccess() => _showListener.onAdSuccess();
 }
