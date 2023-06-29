@@ -1,13 +1,12 @@
 import 'dart:convert';
-
-import 'package:adsdk/src/internal/enums/ad_provider.dart';
-import 'package:adsdk/src/internal/enums/ad_size.dart';
-import 'package:adsdk/src/internal/enums/ad_type.dart';
+import '../enums/ad_provider.dart';
+import '../enums/ad_size.dart';
+import '../enums/ad_type.dart';
 
 class AdSdkApiResponse {
-  final String status;
-  final String message;
-  final AdSdkApp app;
+  final String? status;
+  final String? message;
+  final AdSdkAppConfig app;
 
   AdSdkApiResponse({
     required this.status,
@@ -17,22 +16,19 @@ class AdSdkApiResponse {
 
   factory AdSdkApiResponse.fromMap(Map<String, dynamic> map) {
     return AdSdkApiResponse(
-      status: map['status'] ?? "",
-      message: map['message'] ?? "",
-      app: AdSdkApp.fromMap(map['app'] as Map<String, dynamic>),
+      status: map['status'],
+      message: map['message'],
+      app: AdSdkAppConfig.fromMap(map['app'] as Map<String, dynamic>),
     );
   }
-
-  factory AdSdkApiResponse.fromJson(String source) =>
-      AdSdkApiResponse.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
-class AdSdkApp {
+class AdSdkAppConfig {
   final bool showAppAds;
   final bool isActive;
-  final String redirectLinkDescription;
-  final String redirectLink;
-  final bool enablePopup;
+  final String? redirectLinkDescription;
+  final String? redirectLink;
+  final bool? enablePopup;
   final String id;
   final String appName;
   final String packageId;
@@ -40,12 +36,12 @@ class AdSdkApp {
   final int latestVersion;
   final int criticalVersion;
   final String appUid;
-  final List<AdSdkAdConfig> ads;
+  final List<AdEntityConfig> ads;
   final String createdAt;
   final String updatedAt;
   final int v;
 
-  AdSdkApp({
+  AdSdkAppConfig({
     required this.showAppAds,
     required this.isActive,
     required this.redirectLinkDescription,
@@ -64,42 +60,39 @@ class AdSdkApp {
     required this.v,
   });
 
-  factory AdSdkApp.fromMap(Map<String, dynamic> map) {
-    return AdSdkApp(
-      showAppAds: map['showAppAds'] ?? false,
-      isActive: map['isActive'] ?? false,
-      redirectLinkDescription: map['redirectLinkDescription'] ?? "",
-      redirectLink: map['redirectLink'] ?? "",
-      enablePopup: map['enablePopup'] ?? false,
-      id: map['_id'] ?? "",
-      appName: map['appName'] ?? "",
-      packageId: map['packageId'] ?? "",
-      platform: map['platform'] ?? "",
-      latestVersion: map['latestVersion'] ?? 0,
-      criticalVersion: map['criticalVersion'] ?? 0,
-      appUid: map['appUid'] ?? "",
-      ads: List<AdSdkAdConfig>.from(
-        (map['adMob'] ?? []).map<AdSdkAdConfig>(
-          (x) => AdSdkAdConfig.fromMap(x),
+  factory AdSdkAppConfig.fromMap(Map<String, dynamic> map) {
+    return AdSdkAppConfig(
+      showAppAds: map['showAppAds'],
+      isActive: map['isActive'],
+      redirectLinkDescription: map['redirectLinkDescription'],
+      redirectLink: map['redirectLink'],
+      enablePopup: map['enablePopup'],
+      id: map['_id'],
+      appName: map['appName'],
+      packageId: map['packageId'],
+      platform: map['platform'],
+      latestVersion: map['latestVersion'],
+      criticalVersion: map['criticalVersion'],
+      appUid: map['appUid'],
+      ads: List<AdEntityConfig>.from(
+        (map['adMob']).map<AdEntityConfig>(
+          (x) => AdEntityConfig.fromMap(x),
         ),
       ),
-      createdAt: map['createdAt'] ?? "",
-      updatedAt: map['updatedAt'] ?? "",
-      v: map['__v'] ?? 0,
+      createdAt: map['createdAt'],
+      updatedAt: map['updatedAt'],
+      v: map['__v'],
     );
   }
-
-  factory AdSdkApp.fromJson(String source) =>
-      AdSdkApp.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
-class AdSdkAdConfig {
+class AdEntityConfig {
   final List<String> primaryIds;
   final List<String> secondaryIds;
   final String id;
   final String adName;
-  final AdProvider primaryAdprovider;
-  final AdProvider secondaryAdprovider;
+  final AdProvider primaryAdProvider;
+  final AdProvider secondaryAdProvider;
   final AdUnitType adType;
   final bool isActive;
   final int refreshRateMs;
@@ -110,17 +103,17 @@ class AdSdkAdConfig {
   final String bgColor;
   final String bgColorDark;
   final AdSdkAdSize size;
-  final int primaryAdloadTimeoutMs;
+  final int primaryAdLoadTimeoutMs;
   final int backgroundThreshold;
   final int mediaHeight;
 
-  AdSdkAdConfig({
+  AdEntityConfig({
     required this.primaryIds,
     required this.secondaryIds,
     required this.id,
     required this.adName,
-    required this.primaryAdprovider,
-    required this.secondaryAdprovider,
+    required this.primaryAdProvider,
+    required this.secondaryAdProvider,
     required this.adType,
     required this.isActive,
     required this.refreshRateMs,
@@ -131,37 +124,48 @@ class AdSdkAdConfig {
     required this.bgColor,
     required this.bgColorDark,
     required this.size,
-    required this.primaryAdloadTimeoutMs,
+    required this.primaryAdLoadTimeoutMs,
     required this.backgroundThreshold,
     required this.mediaHeight,
   });
 
-  factory AdSdkAdConfig.fromMap(Map<String, dynamic> map) {
-    return AdSdkAdConfig(
-      primaryIds: List<String>.from(map['primary_ids'] ?? []),
-      secondaryIds: List<String>.from(map['secondary_ids'] ?? []),
-      id: map['_id'] ?? "",
-      adName: map['ad_name'] ?? "",
-      primaryAdprovider:
-          ((map['primary_adprovider'] ?? "") as String).adProvider,
-      secondaryAdprovider:
-          ((map['secondary_adprovider'] ?? "") as String).adProvider,
-      adType: ((map['ad_type'] ?? "") as String).adUnitType,
-      isActive: map['isActive'] ?? false,
-      refreshRateMs: map['refresh_rate_ms'] ?? 0,
-      colorHex: map['color_hex'] ?? "",
-      colorHexDark: map['color_hex_dark'] ?? "",
-      textColor: map['text_color'] ?? "",
-      textColorDark: map['text_color_dark'] ?? "",
-      bgColor: map['bg_color'] ?? "",
-      bgColorDark: map['bg_color_dark'] ?? "",
-      size: ((map['size'] ?? "") as String).adSdkAdSize,
-      primaryAdloadTimeoutMs: map['primary_adload_timeout_ms'] ?? 0,
+  factory AdEntityConfig.fromMap(Map<String, dynamic> map) {
+    return AdEntityConfig(
+      primaryIds: List<String>.from(map['primary_ids']),
+      secondaryIds: List<String>.from(map['secondary_ids']),
+      id: map['_id'],
+      adName: map['ad_name'],
+      primaryAdProvider: AdProvider.values.firstWhere(
+        (element) =>
+            element.key.toLowerCase() ==
+            map['primary_adprovider'].toLowerCase(),
+        orElse: () => AdProvider.admob,
+      ),
+      secondaryAdProvider: AdProvider.values.firstWhere(
+        (element) =>
+            element.key.toLowerCase() ==
+            map['secondary_adprovider'].toLowerCase(),
+        orElse: () => AdProvider.admob,
+      ),
+      adType: AdUnitType.values.firstWhere(
+        (element) => element.key.toLowerCase() == map['ad_type'].toLowerCase(),
+        orElse: () => AdUnitType.interstitial,
+      ),
+      isActive: map['isActive'],
+      refreshRateMs: map['refresh_rate_ms'],
+      colorHex: map['color_hex'],
+      colorHexDark: map['color_hex_dark'],
+      textColor: map['text_color'],
+      textColorDark: map['text_color_dark'],
+      bgColor: map['bg_color'],
+      bgColorDark: map['bg_color_dark'],
+      size: AdSdkAdSize.values.firstWhere(
+        (element) => element.key.toLowerCase() == map['size'].toLowerCase(),
+        orElse: () => AdSdkAdSize.banner,
+      ),
+      primaryAdLoadTimeoutMs: map['primary_adload_timeout_ms'] ?? 0,
       backgroundThreshold: map['background_threshold'] ?? 0,
       mediaHeight: map['mediaHeight'] ?? 0,
     );
   }
-
-  factory AdSdkAdConfig.fromJson(String source) =>
-      AdSdkAdConfig.fromMap(json.decode(source) as Map<String, dynamic>);
 }

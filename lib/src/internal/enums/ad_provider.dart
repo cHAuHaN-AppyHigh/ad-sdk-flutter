@@ -7,14 +7,3 @@ enum AdProvider {
 
   const AdProvider(this.key);
 }
-
-extension StringExtensions on String {
-  AdProvider get adProvider {
-    if (toLowerCase() == AdProvider.admanager.key.toLowerCase()) {
-      return AdProvider.admanager;
-    } else if (toLowerCase() == AdProvider.applovin.key.toLowerCase()) {
-      return AdProvider.applovin;
-    }
-    return AdProvider.admob;
-  }
-}

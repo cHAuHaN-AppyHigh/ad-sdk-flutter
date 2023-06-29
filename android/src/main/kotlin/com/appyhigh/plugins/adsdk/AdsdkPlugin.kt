@@ -23,15 +23,17 @@ class AdsdkPlugin: FlutterPlugin, MethodCallHandler {
 
     flutterEngine = flutterPluginBinding.getFlutterEngine()
     context = flutterPluginBinding.getApplicationContext()
+
+    val nativeAdFactory: GoogleMobileAdsPlugin.NativeAdFactory = CustomNativeAd(context)
+    GoogleMobileAdsPlugin.registerNativeAdFactory(flutterEngine, "nativeAdView", nativeAdFactory)
+
+    val smallNativeAdFactory: GoogleMobileAdsPlugin.NativeAdFactory = CustomNativeAdSmall(context)
+    GoogleMobileAdsPlugin.registerNativeAdFactory(flutterEngine, "smallNativeAdView", smallNativeAdFactory)
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     if (call.method == "registerNativeAds") {
-      val nativeAdFactory: GoogleMobileAdsPlugin.NativeAdFactory = CustomNativeAd(context)
-      GoogleMobileAdsPlugin.registerNativeAdFactory(flutterEngine, "nativeAdView", nativeAdFactory)
 
-      val smallNativeAdFactory: GoogleMobileAdsPlugin.NativeAdFactory = CustomNativeAdSmall(context)
-      GoogleMobileAdsPlugin.registerNativeAdFactory(flutterEngine, "smallNativeAdView", smallNativeAdFactory)
       result.success(true)
     } else {
       result.notImplemented()
