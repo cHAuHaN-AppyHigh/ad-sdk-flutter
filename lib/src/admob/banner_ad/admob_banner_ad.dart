@@ -49,16 +49,19 @@ class AdmobBannerAd extends BannerAd {
     google_ads.BannerAd(
       size: _bannerSize,
       adUnitId: adId,
-      listener: google_ads.BannerAdListener(onAdLoaded: (ad) {
-        adLoadListener.onAdLoaded();
-        _ad = ad as google_ads.BannerAd;
-        _isAdLoaded = true;
-        _failedToLoad = false;
-      }, onAdFailedToLoad: (ad, error) {
-        adLoadListener.onFailedToLoadAd();
-        _failedToLoad = true;
-        _isAdLoaded = false;
-      }),
+      listener: google_ads.BannerAdListener(
+        onAdLoaded: (ad) {
+          adLoadListener.onAdLoaded();
+          _ad = ad as google_ads.BannerAd;
+          _isAdLoaded = true;
+          _failedToLoad = false;
+        },
+        onAdFailedToLoad: (ad, error) {
+          adLoadListener.onFailedToLoadAd();
+          _failedToLoad = true;
+          _isAdLoaded = false;
+        },
+      ),
       request: adRequest,
     ).load();
   }
@@ -76,9 +79,6 @@ class AdmobBannerAd extends BannerAd {
       );
 
   @override
-  bool get isAdLoaded => _isAdLoaded;
-
-  @override
   bool get adFailedToLoad => _failedToLoad;
 
   @override
@@ -86,4 +86,7 @@ class AdmobBannerAd extends BannerAd {
 
   @override
   double get width => _bannerSize.width.toDouble();
+
+  @override
+  bool get isAdLoaded => _isAdLoaded;
 }

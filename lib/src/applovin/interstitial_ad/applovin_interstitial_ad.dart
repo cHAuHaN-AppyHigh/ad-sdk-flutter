@@ -34,8 +34,13 @@ class ApplovinInterstitialAd extends InterstitialAd
   Future<void> show({
     required AdShowListener adShowListener,
   }) async {
-    _showListener = adShowListener;
-    AppLovinMAX.showInterstitial(adId);
+    bool? isReady = await AppLovinMAX.isInterstitialReady(adId);
+    if (isReady == true) {
+      _showListener = adShowListener;
+      AppLovinMAX.showInterstitial(adId);
+    } else {
+      throw Exception('Ad is not ready');
+    }
   }
 
   @override

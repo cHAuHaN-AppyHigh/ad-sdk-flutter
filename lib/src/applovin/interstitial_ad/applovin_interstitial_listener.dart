@@ -1,4 +1,5 @@
 import 'package:adsdk/src/applovin/listeners/app_lovin_listener.dart';
+import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:applovin_max/applovin_max.dart';
 
 class ApplovinInterstitialListener implements InterstitialListener {
@@ -27,6 +28,7 @@ class ApplovinInterstitialListener implements InterstitialListener {
   @override
   Function(MaxAd ad, MaxError error) get onAdDisplayFailedCallback =>
       (MaxAd ad, MaxError error) {
+        AdSdkLogger.info('Applovin ${ad.adUnitId} onAdDisplayFailedCallback');
         for (var element in _listeners) {
           if (element.applovinAdId == ad.adUnitId) {
             element.onAdFailedToShow();
@@ -36,6 +38,7 @@ class ApplovinInterstitialListener implements InterstitialListener {
 
   @override
   Function(MaxAd ad) get onAdDisplayedCallback => (MaxAd ad) {
+        AdSdkLogger.info('Applovin ${ad.adUnitId} onAdDisplayedCallback');
         for (var element in _listeners) {
           if (element.applovinAdId == ad.adUnitId) {
             element.onAdSuccess();
@@ -45,6 +48,7 @@ class ApplovinInterstitialListener implements InterstitialListener {
 
   @override
   Function(MaxAd ad) get onAdHiddenCallback => (MaxAd ad) {
+        AdSdkLogger.info('Applovin ${ad.adUnitId} onAdHiddenCallback');
         for (var element in _listeners) {
           if (element.applovinAdId == ad.adUnitId) {
             element.onAdClosed();
@@ -55,6 +59,7 @@ class ApplovinInterstitialListener implements InterstitialListener {
   @override
   Function(String adUnitId, MaxError error) get onAdLoadFailedCallback =>
       (String adUnitId, MaxError error) {
+        AdSdkLogger.info('Applovin $adUnitId onAdLoadFailedCallback');
         for (var element in _listeners) {
           if (element.applovinAdId == adUnitId) {
             element.onFailedToLoadAd();
@@ -64,6 +69,7 @@ class ApplovinInterstitialListener implements InterstitialListener {
 
   @override
   Function(MaxAd ad) get onAdLoadedCallback => (MaxAd ad) {
+        AdSdkLogger.info('Applovin ${ad.adUnitId} onAdLoadedCallback');
         for (var element in _listeners) {
           if (element.applovinAdId == ad.adUnitId) {
             element.onAdLoaded();

@@ -32,8 +32,13 @@ class ApplovinAppOpenAd extends AppOpenAd implements ApplovinListener {
   Future<void> show({
     required AdShowListener adShowListener,
   }) async {
-    _showListener = adShowListener;
-    AppLovinMAX.showAppOpenAd(adId);
+    bool? isReady = await AppLovinMAX.isAppOpenAdReady(adId);
+    if (isReady == true) {
+      _showListener = adShowListener;
+      AppLovinMAX.showAppOpenAd(adId);
+    } else {
+      throw Exception('Ad is not ready');
+    }
   }
 
   @override

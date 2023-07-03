@@ -23,6 +23,8 @@ import 'internal/listeners/ad_load_listener.dart';
 import 'internal/listeners/ad_show_listener.dart';
 import 'internal/models/ad_entity_config.dart';
 
+enum AdLoadState { success, failed }
+
 abstract class AdEntity {
   final String appyhighId;
 
@@ -41,15 +43,36 @@ abstract class AdEntity {
 
   AdEntityConfig? _adConfig;
 
+  late final StreamController<AdLoadState> _adLoadStateController =
+      StreamController<AdLoadState>(onListen: () {
+    if (_adLoadState != null) {
+      _adLoadStateController.sink.add(_adLoadState!);
+    }
+  });
+
+  Stream<AdLoadState> get onAdLoadStateChanged =>
+      _adLoadStateController.stream.asBroadcastStream();
+
+  AdLoadState? _adLoadState;
+
+  void _setAdState(AdLoadState loadState) {
+    _adLoadState = loadState;
+    _adLoadStateController.sink.add(_adLoadState!);
+  }
+
   Future<void> loadAd(
       {required VoidCallback onAdLoaded,
       required VoidCallback onAdFailedToLoad}) async {
-    return _loadAd(() {
+    _adLoadState = null;
+    return _loadAd(() async {
       onAdLoaded();
+      _setAdState(AdLoadState.success);
       AdSdkLogger.info('$appyhighId ${ad?.adId} loaded ${ad?.provider}');
     }, () {
       onAdFailedToLoad();
-      AdSdkLogger.info('$appyhighId ${ad?.adId} failed to load ${ad?.provider}');
+      _setAdState(AdLoadState.failed);
+      AdSdkLogger.info(
+          '$appyhighId ${ad?.adId} failed to load ${ad?.provider}');
     });
   }
 
@@ -115,6 +138,7 @@ abstract class AdEntity {
   }) {
     AdSdkLogger.info(
         '$appyhighId Loading ${ad.adId} for ${ad.provider} loadAdWithMultipleTries $maxRetry');
+
     ad.loadAd(
       adLoadListener: CustomAdLoadListener(
         onAdLoadSuccess: onAdLoaded,
@@ -136,7 +160,10 @@ abstract class AdEntity {
 
   bool get isActive => _adConfig != null && _adConfig!.isActive;
 
-  void dispose() => _ad?.dispose();
+  void dispose() {
+    _ad?.dispose();
+    _ad = null;
+  }
 
   Ad _provideAd(String adId, AdProvider adProvider) {
     AdUnitType adUnitType = _adConfig!.adType;

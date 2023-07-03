@@ -32,8 +32,13 @@ class ApplovinRewardedAd extends RewardedAd implements ApplovinListener {
   Future<void> show({
     required AdShowListener adShowListener,
   }) async {
-    _showListener = adShowListener;
-    AppLovinMAX.showRewardedAd(adId);
+    bool? isReady = await AppLovinMAX.isRewardedAdReady(adId);
+    if (isReady == true) {
+      _showListener = adShowListener;
+      AppLovinMAX.showRewardedAd(adId);
+    } else {
+      throw Exception('Ad is not ready');
+    }
   }
 
   @override
@@ -62,6 +67,4 @@ class ApplovinRewardedAd extends RewardedAd implements ApplovinListener {
 
   @override
   void onAdSuccess() => _showListener.onAdSuccess();
-
-
 }

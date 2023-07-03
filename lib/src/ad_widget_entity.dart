@@ -34,9 +34,10 @@ class _AdWidgetState extends State<AdWidget> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) => _setListener());
   }
 
-  ///Todo: Left
   _setListener() async {
-    if (mounted) setState(() {});
+    widget.adEntity.onAdLoadStateChanged.listen((event) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
