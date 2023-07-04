@@ -227,23 +227,3 @@ class CustomAdLoadListener implements AdLoadListener {
   void onFailedToLoadAd() => onAdLoadFailure();
 }
 
-class CustomAdShowListener implements AdShowListener {
-  final VoidCallback onAdClosedSuccess;
-  final VoidCallback onAdShowFailure;
-  final VoidCallback onAdSuccessful;
-
-  CustomAdShowListener({
-    required this.onAdClosedSuccess,
-    required this.onAdShowFailure,
-    required this.onAdSuccessful,
-  });
-
-  @override
-  void onAdClosed() => onAdClosedSuccess();
-
-  @override
-  void onAdFailedToShow() => onAdShowFailure();
-
-  @override
-  void onAdSuccess() => onAdSuccessful();
-}

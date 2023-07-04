@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:adsdk/src/internal/ad.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
+import 'package:flutter/foundation.dart';
 import 'ad_entity.dart';
 import 'internal/listeners/ad_show_listener.dart';
 
@@ -32,4 +33,25 @@ class AdViewEntity extends AdEntity {
       throw Exception('Ad Couldn\'t load');
     }
   }
+}
+
+class CustomAdShowListener implements AdShowListener {
+  final VoidCallback onAdClosedSuccess;
+  final VoidCallback onAdShowFailure;
+  final VoidCallback onAdSuccessful;
+
+  CustomAdShowListener({
+    required this.onAdClosedSuccess,
+    required this.onAdShowFailure,
+    required this.onAdSuccessful,
+  });
+
+  @override
+  void onAdClosed() => onAdClosedSuccess();
+
+  @override
+  void onAdFailedToShow() => onAdShowFailure();
+
+  @override
+  void onAdSuccess() => onAdSuccessful();
 }
