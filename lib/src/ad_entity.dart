@@ -44,14 +44,13 @@ abstract class AdEntity {
   AdEntityConfig? _adConfig;
 
   late final StreamController<AdLoadState> _adLoadStateController =
-      StreamController<AdLoadState>(onListen: () {
+      StreamController<AdLoadState>.broadcast(onListen: () {
     if (_adLoadState != null) {
       _adLoadStateController.sink.add(_adLoadState!);
     }
   });
 
-  Stream<AdLoadState> get onAdLoadStateChanged =>
-      _adLoadStateController.stream.asBroadcastStream();
+  Stream<AdLoadState> get onAdLoadStateChanged => _adLoadStateController.stream;
 
   AdLoadState? _adLoadState;
 
