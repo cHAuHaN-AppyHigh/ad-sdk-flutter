@@ -11,7 +11,7 @@ class AdViewEntity extends AdEntity {
 
   Future<void> showAd(AdShowListener adShowListener) async {
     if (ad == null) {
-      throw Exception('Ad Couldn\'t load');
+      throw Exception('Ad Couldn\'t fetch');
     }
     AdSdkLogger.info('Trying to show Ad ${ad!.adId} with ${ad!.provider}');
     final Completer<AdLoadState> completer = Completer<AdLoadState>();

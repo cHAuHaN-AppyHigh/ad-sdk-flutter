@@ -114,11 +114,32 @@ abstract class AdEntity {
       }
     }
     AdSdkLogger.info(
-        '$appyhighId Loading ${_ad?.adId} for ${_ad?.provider} loadAd');
+      '$appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
+    );
+
+    ///Incase if Ad wasn't loaded in 3 seconds
+    final Completer adCompleter = Completer();
+    Timer timer = Timer(const Duration(seconds: 3), () {
+      if (!adCompleter.isCompleted) {
+        _loadAd(
+          onAdLoaded,
+          onAdFailedToLoad,
+          isPrimary: isPrimary,
+          index: ++index,
+        );
+        adCompleter.complete(null);
+      }
+    });
     _loadAdWithMultipleTries(
       _ad!,
-      onAdLoaded: onAdLoaded,
+      onAdLoaded: () {
+        adCompleter.complete(null);
+        timer.cancel();
+        onAdLoaded();
+      },
       onAdFailedToLoad: () {
+        adCompleter.complete(null);
+        timer.cancel();
         _loadAd(
           onAdLoaded,
           onAdFailedToLoad,
@@ -137,7 +158,6 @@ abstract class AdEntity {
   }) {
     AdSdkLogger.info(
         '$appyhighId Loading ${ad.adId} for ${ad.provider} loadAdWithMultipleTries $maxRetry');
-
     ad.loadAd(
       adLoadListener: CustomAdLoadListener(
         onAdLoadSuccess: onAdLoaded,
@@ -226,4 +246,3 @@ class CustomAdLoadListener implements AdLoadListener {
   @override
   void onFailedToLoadAd() => onAdLoadFailure();
 }
-
