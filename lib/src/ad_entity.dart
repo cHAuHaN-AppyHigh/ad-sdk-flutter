@@ -121,13 +121,16 @@ abstract class AdEntity {
     final Completer adCompleter = Completer();
     Timer timer = Timer(const Duration(seconds: 3), () {
       if (!adCompleter.isCompleted) {
+        AdSdkLogger.info(
+          '$appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer',
+        );
+        adCompleter.complete(null);
         _loadAd(
           onAdLoaded,
           onAdFailedToLoad,
           isPrimary: isPrimary,
           index: ++index,
         );
-        adCompleter.complete(null);
       }
     });
     _loadAdWithMultipleTries(
