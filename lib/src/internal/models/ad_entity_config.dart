@@ -52,19 +52,19 @@ class AdEntityConfig {
       id: map['_id'],
       adName: map['ad_name'],
       primaryAdProvider: AdProvider.values.firstWhere(
-            (element) =>
-        element.key.toLowerCase() ==
+        (element) =>
+            element.key.toLowerCase() ==
             map['primary_adprovider'].toLowerCase(),
         orElse: () => AdProvider.admob,
       ),
       secondaryAdProvider: AdProvider.values.firstWhere(
-            (element) =>
-        element.key.toLowerCase() ==
+        (element) =>
+            element.key.toLowerCase() ==
             map['secondary_adprovider'].toLowerCase(),
         orElse: () => AdProvider.admob,
       ),
       adType: AdUnitType.values.firstWhere(
-            (element) => element.key.toLowerCase() == map['ad_type'].toLowerCase(),
+        (element) => element.key.toLowerCase() == map['ad_type'].toLowerCase(),
         orElse: () => AdUnitType.interstitial,
       ),
       isActive: map['isActive'],
@@ -76,11 +76,11 @@ class AdEntityConfig {
       bgColor: map['bg_color'],
       bgColorDark: map['bg_color_dark'],
       size: AdSdkAdSize.values.firstWhere(
-            (element) => element.key.toLowerCase() == map['size'].toLowerCase(),
+        (element) => element.key.toLowerCase() == map['size'].toLowerCase(),
         orElse: () => AdSdkAdSize.banner,
       ),
-      primaryAdLoadTimeoutMs: map['primary_adload_timeout_ms'] ?? 0,
-      backgroundThreshold: map['background_threshold'] ?? 0,
+      primaryAdLoadTimeoutMs: map['primary_adload_timeout_ms'] ?? 5000,
+      backgroundThreshold: map['background_threshold'] ?? 1000,
       mediaHeight: map['mediaHeight'] ?? 0,
     );
   }

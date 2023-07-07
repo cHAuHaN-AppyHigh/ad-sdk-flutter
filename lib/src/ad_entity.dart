@@ -117,20 +117,56 @@ abstract class AdEntity {
       '$appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
     );
 
-
-    _loadAdWithMultipleTries(
+    ///Incase if Ad wasn't loaded in t seconds
+    _loadAdWithTimeout(
       _ad!,
-      onAdLoaded: () {
-        onAdLoaded();
-      },
-      onAdFailedToLoad: () {
-        _loadAd(
-          onAdLoaded,
-          onAdFailedToLoad,
-          isPrimary: isPrimary,
-          index: ++index,
+      onAdLoaded: onAdLoaded,
+      onAdFailedToLoad: () => _loadAd(
+        onAdLoaded,
+        onAdFailedToLoad,
+        isPrimary: isPrimary,
+        index: ++index,
+      ),
+      timeoutDuration: Duration(milliseconds: adConfig.primaryAdLoadTimeoutMs),
+    );
+  }
+
+  _loadAdWithTimeout(Ad ad,
+      {required VoidCallback onAdLoaded,
+      required VoidCallback onAdFailedToLoad,
+      required Duration timeoutDuration}) {
+    final Completer adCompleter = Completer();
+    Timer timer = Timer(timeoutDuration, () {
+      if (!adCompleter.isCompleted) {
+        AdSdkLogger.info(
+          '$appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer $timeoutDuration',
         );
-      },
+        adCompleter.complete(null);
+        onAdFailedToLoad();
+      }
+    });
+
+    DateTime start = DateTime.now();
+    ad.loadAd(
+      adLoadListener: CustomAdLoadListener(
+        onAdLoadSuccess: () {
+          AdSdkLogger.info(
+            '$appyhighId ${_ad?.adId} for ${_ad?.provider} loaded in ${DateTime.now().difference(start)}',
+          );
+          if (!adCompleter.isCompleted) {
+            adCompleter.complete(null);
+            timer.cancel();
+            onAdLoaded();
+          }
+        },
+        onAdLoadFailure: () {
+          if (!adCompleter.isCompleted) {
+            adCompleter.complete(null);
+            timer.cancel();
+            onAdFailedToLoad();
+          }
+        },
+      ),
     );
   }
 
