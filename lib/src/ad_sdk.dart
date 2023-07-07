@@ -36,7 +36,7 @@ class AdSdk {
     AdSdkAppConfig adSdkAppConfig =
         (await _fetchAdConfig()) ?? defaultAdSdkAppConfig;
 
-    if (!defaultAdSdkAppConfig.showAppAds) {
+    if (!adSdkAppConfig.showAppAds) {
       AdSdkLogger.error("Ads disabled from backend.");
       return;
     }
