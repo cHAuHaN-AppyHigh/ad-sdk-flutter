@@ -36,12 +36,12 @@ class AdSdk {
     AdSdkAppConfig adSdkAppConfig =
         (await _fetchAdConfig()) ?? defaultAdSdkAppConfig;
 
+    _adConfigs = {};
+
     if (!adSdkAppConfig.showAppAds) {
       AdSdkLogger.error("Ads disabled from backend.");
       return;
     }
-
-    _adConfigs = {};
 
     for (var ad in adSdkAppConfig.ads) {
       _adConfigs[ad.adName] = ad;
