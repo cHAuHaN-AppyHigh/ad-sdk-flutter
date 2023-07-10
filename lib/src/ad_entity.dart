@@ -8,7 +8,7 @@ import 'internal/ad.dart';
 import 'internal/listeners/ad_load_listener.dart';
 import 'internal/models/ad_entity_config.dart';
 
-enum AdLoadState { success, failed }
+enum AdLoadState { success, failed, loading }
 
 abstract class AdEntity {
   final String _appyhighId;
@@ -47,7 +47,9 @@ abstract class AdEntity {
   Future<void> loadAd(
       {required VoidCallback onAdLoaded,
       required VoidCallback onAdFailedToLoad}) async {
-    _adLoadState = null;
+    if (_adLoadState == AdLoadState.loading ||
+        _adLoadState == AdLoadState.success) return;
+    _adLoadState = AdLoadState.loading;
     return _loadAd(() async {
       onAdLoaded();
       _setAdState(AdLoadState.success);
@@ -156,6 +158,10 @@ abstract class AdEntity {
   }
 
   bool get isActive => _adConfig != null && _adConfig!.isActive;
+
+  void resetAdState() {
+    _adLoadState = null;
+  }
 
   void dispose() {
     _ad?.dispose();

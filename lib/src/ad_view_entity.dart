@@ -17,12 +17,13 @@ class AdViewEntity extends AdEntity {
     final Completer<AdLoadState> completer = Completer<AdLoadState>();
     StreamSubscription<AdLoadState> subscription =
         onAdLoadStateChanged.listen((event) {
-      if (!completer.isCompleted) {
+      if (event != AdLoadState.loading && !completer.isCompleted) {
         completer.complete(event);
       }
     });
     AdLoadState result = await completer.future;
     subscription.cancel();
+    resetAdState();
     return _showAd(result, adShowListener);
   }
 
