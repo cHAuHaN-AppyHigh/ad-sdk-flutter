@@ -4,7 +4,6 @@ import '../../internal/listeners/ad_show_listener.dart';
 import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart' as google_ads;
 import '../../internal/rewarded_ad/rewarded_ad.dart';
-import '../utils/admob_config.dart';
 
 class AdmobRewardedInterstitialAd extends RewardedAd {
   final google_ads.AdRequest adRequest;

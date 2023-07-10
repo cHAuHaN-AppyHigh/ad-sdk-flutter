@@ -57,6 +57,13 @@ class AdSdk {
     }
 
     if (appLovinKey != null) {
+
+      if (_adSdkConfig.applovinTestDevices.isNotEmpty) {
+        AppLovinMAX.setTestDeviceAdvertisingIds(
+          _adSdkConfig.applovinTestDevices,
+        );
+      }
+
       await AppLovinMAX.initialize(appLovinKey);
 
       AdSdkLogger.info("Applovin initialized.");

@@ -1,44 +1,29 @@
 import 'dart:async';
 import 'dart:ui';
-
-import 'package:adsdk/src/admanager/utils/admob_config.dart';
-import 'package:adsdk/src/admob/banner_ad/admob_banner_ad.dart';
-import 'package:adsdk/src/admob/rewarded_interstitial_ad/admob_rewarded_interstitial_ad.dart';
-import 'package:adsdk/src/applovin/app_open_ad/applovin_app_open_ad.dart';
-import 'package:adsdk/src/applovin/interstitial_ad/applovin_interstitial_ad.dart';
-import 'package:adsdk/src/applovin/rewarded_ad/applovin_rewarded_ad.dart';
+import 'package:adsdk/src/internal/enums/ad_provider.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
-
+import 'package:adsdk/src/util/ad_provider_factory.dart';
 import 'ad_sdk.dart';
-import 'admanager/interstitial_ad/admanager_interstitial_ad.dart';
-import 'admob/app_open_ad/admob_app_open_ad.dart';
-import 'admob/interstitial_ad/admob_interstitial_ad.dart';
-import 'admob/native_ad/admob_native_ad.dart';
-import 'admob/rewarded_ad/admob_rewarded_ad.dart';
-import 'admob/utils/admob_config.dart';
 import 'internal/ad.dart';
-import 'internal/enums/ad_provider.dart';
-import 'internal/enums/ad_type.dart';
 import 'internal/listeners/ad_load_listener.dart';
-import 'internal/listeners/ad_show_listener.dart';
 import 'internal/models/ad_entity_config.dart';
 
 enum AdLoadState { success, failed }
 
 abstract class AdEntity {
-  final String appyhighId;
+  final String _appyhighId;
 
   Ad? _ad;
 
   Ad? get ad => _ad;
 
-  AdEntity(this.appyhighId) {
-    if (!AdSdk.adConfigs.containsKey(appyhighId)) {
-      AdSdkLogger.error('$appyhighId Doesn\'t exist');
+  AdEntity(this._appyhighId) {
+    if (!AdSdk.adConfigs.containsKey(_appyhighId)) {
+      AdSdkLogger.error('$_appyhighId Doesn\'t exist');
       return;
     }
     AdSdkLogger.info(AdSdk.adConfigs.toString());
-    _adConfig = AdSdk.adConfigs[appyhighId]!;
+    _adConfig = AdSdk.adConfigs[_appyhighId]!;
   }
 
   AdEntityConfig? _adConfig;
@@ -66,12 +51,12 @@ abstract class AdEntity {
     return _loadAd(() async {
       onAdLoaded();
       _setAdState(AdLoadState.success);
-      AdSdkLogger.info('$appyhighId ${ad?.adId} loaded ${ad?.provider}');
+      AdSdkLogger.info('$_appyhighId ${ad?.adId} loaded ${ad?.provider}');
     }, () {
       onAdFailedToLoad();
       _setAdState(AdLoadState.failed);
       AdSdkLogger.info(
-          '$appyhighId ${ad?.adId} failed to load ${ad?.provider}');
+          '$_appyhighId ${ad?.adId} failed to load ${ad?.provider}');
     });
   }
 
@@ -114,7 +99,7 @@ abstract class AdEntity {
       }
     }
     AdSdkLogger.info(
-      '$appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
+      '$_appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
     );
 
     ///Incase if Ad wasn't loaded in t seconds
@@ -139,7 +124,7 @@ abstract class AdEntity {
     Timer timer = Timer(timeoutDuration, () {
       if (!adCompleter.isCompleted) {
         AdSdkLogger.info(
-          '$appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer $timeoutDuration',
+          '$_appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer $timeoutDuration',
         );
         adCompleter.complete(null);
         onAdFailedToLoad();
@@ -151,7 +136,7 @@ abstract class AdEntity {
       adLoadListener: CustomAdLoadListener(
         onAdLoadSuccess: () {
           AdSdkLogger.info(
-            '$appyhighId ${_ad?.adId} for ${_ad?.provider} loaded in ${DateTime.now().difference(start)}',
+            '$_appyhighId ${_ad?.adId} for ${_ad?.provider} loaded in ${DateTime.now().difference(start)}',
           );
           if (!adCompleter.isCompleted) {
             adCompleter.complete(null);
@@ -170,33 +155,6 @@ abstract class AdEntity {
     );
   }
 
-  _loadAdWithMultipleTries(
-    Ad ad, {
-    required VoidCallback onAdLoaded,
-    required VoidCallback onAdFailedToLoad,
-    int maxRetry = 3,
-  }) {
-    AdSdkLogger.info(
-        '$appyhighId Loading ${ad.adId} for ${ad.provider} loadAdWithMultipleTries $maxRetry');
-    ad.loadAd(
-      adLoadListener: CustomAdLoadListener(
-        onAdLoadSuccess: onAdLoaded,
-        onAdLoadFailure: () {
-          if (maxRetry > 0) {
-            _loadAdWithMultipleTries(
-              ad,
-              onAdLoaded: onAdLoaded,
-              onAdFailedToLoad: onAdFailedToLoad,
-              maxRetry: maxRetry - 1,
-            );
-          } else {
-            onAdFailedToLoad();
-          }
-        },
-      ),
-    );
-  }
-
   bool get isActive => _adConfig != null && _adConfig!.isActive;
 
   void dispose() {
@@ -204,51 +162,13 @@ abstract class AdEntity {
     _ad = null;
   }
 
-  Ad _provideAd(String adId, AdProvider adProvider) {
-    AdUnitType adUnitType = _adConfig!.adType;
-    switch (adProvider) {
-      case AdProvider.admob:
-        final config = AdmobConfig();
-        switch (adUnitType) {
-          case AdUnitType.appOpen:
-            return AdmobAppOpenAd(adId, adRequest: config.adRequest);
-          case AdUnitType.interstitial:
-            return AdmobInterstitialAd(adId, adRequest: config.adRequest);
-          case AdUnitType.rewarded:
-            return AdmobRewardedAd(adId, adRequest: config.adRequest);
-          case AdUnitType.rewardInterstitial:
-            return AdmobRewardedInterstitialAd(adId,
-                adRequest: config.adRequest);
-          case AdUnitType.banner:
-            return AdmobBannerAd(adId, _adConfig!.size,
-                adRequest: config.adRequest);
-          case AdUnitType.native:
-            return AdmobNativeAd(adId, _adConfig!.size,
-                adRequest: config.adRequest);
-        }
-      case AdProvider.admanager:
-        final config = AdManagerConfig();
-        switch (adUnitType) {
-          case AdUnitType.interstitial:
-            return AdManagerInterstitialAd(adId, adRequest: config.adRequest);
-          default:
-            throw Exception();
-        }
-      case AdProvider.applovin:
-        switch (adUnitType) {
-          case AdUnitType.interstitial:
-            return ApplovinInterstitialAd(adId);
-          case AdUnitType.appOpen:
-            return ApplovinAppOpenAd(adId);
-          case AdUnitType.rewarded:
-            return ApplovinRewardedAd(adId);
-          case AdUnitType.rewardInterstitial:
-            return ApplovinRewardedAd(adId);
-          default:
-            throw Exception();
-        }
-    }
-  }
+  Ad _provideAd(String adId, AdProvider adProvider) =>
+      AdProviderFactory.provideAd(
+        adId,
+        adProvider,
+        _adConfig!,
+        AdSdk.adSdkConfig,
+      );
 }
 
 class CustomAdLoadListener implements AdLoadListener {
