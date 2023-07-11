@@ -11,19 +11,19 @@ import 'internal/models/ad_entity_config.dart';
 enum AdLoadState { success, failed, loading }
 
 abstract class AdEntity {
-  final String _appyhighId;
+  final String appyhighId;
 
   Ad? _ad;
 
   Ad? get ad => _ad;
 
-  AdEntity(this._appyhighId) {
-    if (!AdSdk.adConfigs.containsKey(_appyhighId)) {
-      AdSdkLogger.error('$_appyhighId Doesn\'t exist');
+  AdEntity(this.appyhighId) {
+    if (!AdSdk.adConfigs.containsKey(appyhighId)) {
+      AdSdkLogger.error('$appyhighId Doesn\'t exist');
       return;
     }
     AdSdkLogger.info(AdSdk.adConfigs.toString());
-    _adConfig = AdSdk.adConfigs[_appyhighId]!;
+    _adConfig = AdSdk.adConfigs[appyhighId]!;
   }
 
   AdEntityConfig? _adConfig;
@@ -53,12 +53,12 @@ abstract class AdEntity {
     return _loadAd(() async {
       onAdLoaded();
       _setAdState(AdLoadState.success);
-      AdSdkLogger.info('$_appyhighId ${ad?.adId} loaded ${ad?.provider}');
+      AdSdkLogger.info('$appyhighId ${ad?.adId} loaded ${ad?.provider}');
     }, () {
       onAdFailedToLoad();
       _setAdState(AdLoadState.failed);
       AdSdkLogger.info(
-          '$_appyhighId ${ad?.adId} failed to load ${ad?.provider}');
+          '$appyhighId ${ad?.adId} failed to load ${ad?.provider}');
     });
   }
 
@@ -101,7 +101,7 @@ abstract class AdEntity {
       }
     }
     AdSdkLogger.info(
-      '$_appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
+      '$appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
     );
 
     ///Incase if Ad wasn't loaded in t seconds
@@ -126,7 +126,7 @@ abstract class AdEntity {
     Timer timer = Timer(timeoutDuration, () {
       if (!adCompleter.isCompleted) {
         AdSdkLogger.info(
-          '$_appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer $timeoutDuration',
+          '$appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer $timeoutDuration',
         );
         adCompleter.complete(null);
         onAdFailedToLoad();
@@ -138,7 +138,7 @@ abstract class AdEntity {
       adLoadListener: CustomAdLoadListener(
         onAdLoadSuccess: () {
           AdSdkLogger.info(
-            '$_appyhighId ${_ad?.adId} for ${_ad?.provider} loaded in ${DateTime.now().difference(start)}',
+            '$appyhighId ${_ad?.adId} for ${_ad?.provider} loaded in ${DateTime.now().difference(start)}',
           );
           if (!adCompleter.isCompleted) {
             adCompleter.complete(null);
