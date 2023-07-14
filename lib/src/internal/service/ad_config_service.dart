@@ -38,10 +38,10 @@ class AdConfigService {
       );
       var jsonResponse = jsonDecode(response.body);
       AdSdkLogger.info(jsonResponse.toString());
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         var data = jsonResponse['app'];
         _cacheResponse(jsonEncode(data));
-      }else {
+      } else {
         throw Exception('Bad Response');
       }
     } catch (e, stack) {

@@ -22,6 +22,10 @@ class AdSdk {
 
   static AdSdkConfiguration get adSdkConfig => _adSdkConfig;
 
+  static bool _isDebug = false;
+
+  static bool get isDebug => _isDebug;
+
   static Future<void> initialise({
     required AdSdkAppConfig defaultAdSdkAppConfig,
     required String userId,
@@ -29,6 +33,8 @@ class AdSdk {
     bool isDebug = false,
     String? appLovinKey,
   }) async {
+    _isDebug = isDebug;
+
     currentUser = UserModel(id: userId);
 
     _adSdkConfig = adSdkConfiguration ?? AdSdkConfiguration();
@@ -57,7 +63,6 @@ class AdSdk {
     }
 
     if (appLovinKey != null) {
-
       if (_adSdkConfig.applovinTestDevices.isNotEmpty) {
         AppLovinMAX.setTestDeviceAdvertisingIds(
           _adSdkConfig.applovinTestDevices,

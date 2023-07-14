@@ -1,6 +1,9 @@
+import 'package:adsdk/adsdk.dart';
+
 abstract class AdSdkConstants {
-  // static const baseUrl = "https://admob-automation-qa-cdn.apyhi.com";
-  static const baseUrl = "https://admob-automation.apyhi.com";
+  static final baseUrl = AdSdk.isDebug
+      ? "https://admob-automation-qa-cdn.apyhi.com"
+      : "https://admob-automation.apyhi.com";
   static const endpoint = "/api/v2/app/info";
   static const tag = "AdSdk Flutter";
   static const jwtPrivateKey = """-----BEGIN RSA PRIVATE KEY-----
