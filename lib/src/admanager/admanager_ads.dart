@@ -1,0 +1,1 @@
+export 'interstitial_ad/admanager_interstitial_ad.dart';
