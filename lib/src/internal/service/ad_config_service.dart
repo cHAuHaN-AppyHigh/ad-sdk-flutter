@@ -30,7 +30,7 @@ class AdConfigService {
         Uri.parse("${AdSdkConstants.baseUrl}${AdSdkConstants.endpoint}"),
         body: {
           'packageId': appInfo.packageId,
-          'platform': Platform.isAndroid ? 'ANDROID' : 'IOS'
+          'platform': 'FLUTTER-${Platform.isAndroid ? 'ANDROID' : 'IOS'}'
         },
         headers: {
           'Authorization': 'Bearer $authToken',
