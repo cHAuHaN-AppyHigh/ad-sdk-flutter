@@ -19,14 +19,8 @@ class AdmobBannerAd extends BannerAd {
 
   google_ads.BannerAd get bannerAd => _ad!;
 
-  bool _isAdLoaded = false;
-
-  bool _failedToLoad = false;
-
   @override
   void dispose() {
-    _isAdLoaded = false;
-    _failedToLoad = false;
     _ad?.dispose();
     _ad = null;
   }
@@ -53,13 +47,9 @@ class AdmobBannerAd extends BannerAd {
         onAdLoaded: (ad) {
           adLoadListener.onAdLoaded();
           _ad = ad as google_ads.BannerAd;
-          _isAdLoaded = true;
-          _failedToLoad = false;
         },
         onAdFailedToLoad: (ad, error) {
           adLoadListener.onFailedToLoadAd();
-          _failedToLoad = true;
-          _isAdLoaded = false;
         },
       ),
       request: adRequest,
@@ -79,14 +69,8 @@ class AdmobBannerAd extends BannerAd {
       );
 
   @override
-  bool get adFailedToLoad => _failedToLoad;
-
-  @override
   double get height => _bannerSize.height.toDouble();
 
   @override
   double get width => _bannerSize.width.toDouble();
-
-  @override
-  bool get isAdLoaded => _isAdLoaded;
 }
