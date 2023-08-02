@@ -5,7 +5,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'internal/models/ad_entity_config.dart';
 import 'internal/models/ad_sdk_app_config.dart';
 import 'internal/models/ad_sdk_configuration.dart';
-import 'internal/models/api_response.dart';
 import 'internal/service/ad_config_service.dart';
 import 'internal/utils/adsdk_logger.dart';
 
@@ -32,6 +31,8 @@ class AdSdk {
     AdSdkConfiguration? adSdkConfiguration,
     bool isDebug = false,
     String? appLovinKey,
+    String? enforcePackageId,
+    String? enforcePlatform,
   }) async {
     _isDebug = isDebug;
 
@@ -39,8 +40,11 @@ class AdSdk {
 
     _adSdkConfig = adSdkConfiguration ?? AdSdkConfiguration();
 
-    AdSdkAppConfig adSdkAppConfig =
-        (await _fetchAdConfig()) ?? defaultAdSdkAppConfig;
+    AdSdkAppConfig adSdkAppConfig = (await _fetchAdConfig(
+          enforcePackageId: enforcePackageId,
+          enforcePlatform: enforcePlatform,
+        )) ??
+        defaultAdSdkAppConfig;
 
     _adConfigs = {};
 
@@ -51,6 +55,15 @@ class AdSdk {
 
     for (var ad in adSdkAppConfig.ads) {
       _adConfigs[ad.adName] = ad;
+
+      ///Setting Default Fallback ids
+      final defaultAdConfig = defaultAdSdkAppConfig.ads.firstWhere(
+        (element) => element.adName == ad.adName,
+      );
+      _adConfigs[ad.adName]!.setFallbackAds(
+        defaultAdConfig.primaryAdProvider,
+        defaultAdConfig.primaryIds,
+      );
     }
 
     await MobileAds.instance.initialize();
@@ -77,11 +90,12 @@ class AdSdk {
     _isInitialized = true;
   }
 
-  static Future<AdSdkAppConfig?> _fetchAdConfig() async {
-    try {
-      return AdConfigService().fetch();
-    } catch (_) {
-      return null;
-    }
-  }
+  static Future<AdSdkAppConfig?> _fetchAdConfig({
+    String? enforcePackageId,
+    String? enforcePlatform,
+  }) =>
+      AdConfigService().fetch(
+        enforcePackageId: enforcePackageId,
+        enforcePlatform: enforcePlatform,
+      );
 }

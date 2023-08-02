@@ -5,10 +5,12 @@ import 'package:adsdk/src/internal/enums/ad_type.dart';
 class AdEntityConfig {
   final List<String> primaryIds;
   final List<String> secondaryIds;
+  late final List<String> fallbackIds;
   final String id;
   final String adName;
   final AdProvider primaryAdProvider;
   final AdProvider secondaryAdProvider;
+  late final AdProvider fallbackAdProvider;
   final AdUnitType adType;
   final bool isActive;
   final int refreshRateMs;
@@ -22,6 +24,11 @@ class AdEntityConfig {
   final int primaryAdLoadTimeoutMs;
   final int backgroundThreshold;
   final int mediaHeight;
+
+  void setFallbackAds(AdProvider fallbackAdProvider, List<String> fallbackIds) {
+    this.fallbackAdProvider = fallbackAdProvider;
+    this.fallbackIds = fallbackIds;
+  }
 
   AdEntityConfig({
     required this.primaryIds,

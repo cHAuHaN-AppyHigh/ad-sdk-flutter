@@ -10,6 +10,8 @@ import 'internal/models/ad_entity_config.dart';
 
 enum AdLoadState { success, failed, loading }
 
+enum AdPriority { primary, secondary, fallback }
+
 abstract class AdEntity {
   final String appyhighId;
 
@@ -24,9 +26,14 @@ abstract class AdEntity {
     }
     AdSdkLogger.info(AdSdk.adConfigs.toString());
     _adConfig = AdSdk.adConfigs[appyhighId]!;
+    _isActive = _adConfig.isActive;
   }
 
-  AdEntityConfig? _adConfig;
+  late AdEntityConfig _adConfig;
+
+  bool _isActive = false;
+
+  bool get isActive => _isActive;
 
   late final StreamController<AdLoadState> _adLoadStateController =
       StreamController<AdLoadState>.broadcast(onListen: () {
@@ -39,98 +46,132 @@ abstract class AdEntity {
 
   AdLoadState? _adLoadState;
 
+  AdLoadState? get adLoadState => _adLoadState;
+
   void _setAdState(AdLoadState loadState) {
     _adLoadState = loadState;
     _adLoadStateController.sink.add(_adLoadState!);
   }
 
-  Future<void> loadAd(
-      {required VoidCallback onAdLoaded,
-      required VoidCallback onAdFailedToLoad}) async {
+  Future<void> loadAd({
+    required VoidCallback onAdLoaded,
+    required VoidCallback onAdFailedToLoad,
+  }) async {
+    if (!_isActive) {
+      onAdFailedToLoad();
+      _setAdState(AdLoadState.failed);
+      AdSdkLogger.info('$appyhighId is not active');
+      return;
+    }
     if (_adLoadState == AdLoadState.loading ||
         _adLoadState == AdLoadState.success) return;
     _adLoadState = AdLoadState.loading;
-    return _loadAd(() async {
-      onAdLoaded();
-      _setAdState(AdLoadState.success);
-      AdSdkLogger.info('$appyhighId ${ad?.adId} loaded ${ad?.provider}');
+    return _loadAd((Ad ad) async {
+      if (_adLoadState == AdLoadState.loading) {
+        _ad = ad;
+        onAdLoaded();
+        _setAdState(AdLoadState.success);
+        AdSdkLogger.info('$appyhighId ${ad.adId} loaded ${ad.provider}');
+      }
     }, () {
-      onAdFailedToLoad();
-      _setAdState(AdLoadState.failed);
-      AdSdkLogger.info(
-          '$appyhighId ${ad?.adId} failed to load ${ad?.provider}');
+      if (_adLoadState == AdLoadState.loading) {
+        onAdFailedToLoad();
+        _setAdState(AdLoadState.failed);
+        AdSdkLogger.info('$appyhighId failed to load');
+      }
     });
   }
 
   Future<void> _loadAd(
-    VoidCallback onAdLoaded,
+    Function(Ad ad) onAdLoaded,
     VoidCallback onAdFailedToLoad, {
-    bool isPrimary = true,
+    AdPriority adPriority = AdPriority.primary,
     int index = 0,
   }) async {
-    if (!isActive) {
-      onAdFailedToLoad();
-      return;
+    AdSdkLogger.info('$appyhighId $adPriority Loading');
+
+    Ad ad;
+
+    switch (adPriority) {
+      case AdPriority.primary:
+        try {
+          ad = _provideAd(
+            _adConfig.primaryIds[index],
+            _adConfig.primaryAdProvider,
+          );
+        } catch (_) {
+          return _loadAd(
+            onAdLoaded,
+            onAdFailedToLoad,
+            adPriority: AdPriority.secondary,
+            index: 0,
+          );
+        }
+        break;
+      case AdPriority.secondary:
+        try {
+          ad = _provideAd(
+            _adConfig.secondaryIds[index],
+            _adConfig.secondaryAdProvider,
+          );
+        } catch (_) {
+          return _loadAd(
+            onAdLoaded,
+            onAdFailedToLoad,
+            adPriority: AdPriority.fallback,
+            index: 0,
+          );
+        }
+        break;
+      case AdPriority.fallback:
+        try {
+          ad = _provideAd(
+            _adConfig.fallbackIds[index],
+            _adConfig.fallbackAdProvider,
+          );
+        } catch (_) {
+          onAdFailedToLoad();
+          return;
+        }
+        break;
     }
 
-    AdEntityConfig adConfig = _adConfig!;
-
-    if (isPrimary) {
-      try {
-        _ad = _provideAd(
-          adConfig.primaryIds[index],
-          adConfig.primaryAdProvider,
-        );
-      } catch (_) {
-        return _loadAd(
-          onAdLoaded,
-          onAdFailedToLoad,
-          isPrimary: false,
-          index: 0,
-        );
-      }
-    } else {
-      try {
-        _ad = _provideAd(
-          adConfig.secondaryIds[index],
-          adConfig.secondaryAdProvider,
-        );
-      } catch (_) {
-        onAdFailedToLoad();
-        return;
-      }
-    }
     AdSdkLogger.info(
-      '$appyhighId ${isPrimary ? 'Primary' : 'Secondary'} Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
+      '$appyhighId $adPriority Loading ${_ad?.adId} for ${_ad?.provider} loadAd',
     );
 
     ///Incase if Ad wasn't loaded in t seconds
     _loadAdWithTimeout(
-      _ad!,
+      ad,
       onAdLoaded: onAdLoaded,
+
+      ///Both are same
       onAdFailedToLoad: () => _loadAd(
         onAdLoaded,
         onAdFailedToLoad,
-        isPrimary: isPrimary,
+        adPriority: adPriority,
         index: ++index,
       ),
-      timeoutDuration: Duration(milliseconds: adConfig.primaryAdLoadTimeoutMs),
+      onAdDidNotLoadInTime: () => _loadAd(
+        onAdLoaded,
+        onAdFailedToLoad,
+        adPriority: adPriority,
+        index: ++index,
+      ),
+      timeoutDuration: Duration(milliseconds: _adConfig.primaryAdLoadTimeoutMs),
     );
   }
 
   _loadAdWithTimeout(Ad ad,
-      {required VoidCallback onAdLoaded,
+      {required Function(Ad ad) onAdLoaded,
       required VoidCallback onAdFailedToLoad,
+      required VoidCallback onAdDidNotLoadInTime,
       required Duration timeoutDuration}) {
-    final Completer adCompleter = Completer();
     Timer timer = Timer(timeoutDuration, () {
-      if (!adCompleter.isCompleted) {
-        AdSdkLogger.info(
-          '$appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, closed using timer $timeoutDuration',
-        );
-        adCompleter.complete(null);
-        onAdFailedToLoad();
-      }
+      AdSdkLogger.info(
+        '$appyhighId Coulnd\'t load ${_ad?.adId} for ${_ad?.provider} loadAd, under timer $timeoutDuration',
+      );
+      onAdDidNotLoadInTime();
     });
 
     DateTime start = DateTime.now();
@@ -140,15 +181,11 @@ abstract class AdEntity {
           AdSdkLogger.info(
             '$appyhighId ${_ad?.adId} for ${_ad?.provider} loaded in ${DateTime.now().difference(start)}',
           );
-          if (!adCompleter.isCompleted) {
-            adCompleter.complete(null);
-            timer.cancel();
-            onAdLoaded();
-          }
+          timer.cancel();
+          onAdLoaded(ad);
         },
         onAdLoadFailure: () {
-          if (!adCompleter.isCompleted) {
-            adCompleter.complete(null);
+          if (timer.isActive) {
             timer.cancel();
             onAdFailedToLoad();
           }
@@ -156,8 +193,6 @@ abstract class AdEntity {
       ),
     );
   }
-
-  bool get isActive => _adConfig != null && _adConfig!.isActive;
 
   void resetAdState() {
     _adLoadState = null;
@@ -172,7 +207,7 @@ abstract class AdEntity {
       AdProviderFactory.provideAd(
         adId,
         adProvider,
-        _adConfig!,
+        _adConfig,
         AdSdk.adSdkConfig,
       );
 }

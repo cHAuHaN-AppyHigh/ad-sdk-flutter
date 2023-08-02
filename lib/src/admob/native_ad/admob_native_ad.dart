@@ -20,14 +20,8 @@ class AdmobNativeAd extends NativeAd {
 
   google_ads.NativeAd get nativeAd => _ad!;
 
-  bool _isAdLoaded = false;
-
-  bool _failedToLoad = false;
-
   @override
   void dispose() {
-    _isAdLoaded = false;
-    _failedToLoad = false;
     _ad?.dispose();
     _ad = null;
   }
@@ -63,12 +57,8 @@ class AdmobNativeAd extends NativeAd {
       listener: google_ads.NativeAdListener(onAdLoaded: (ad) {
         adLoadListener.onAdLoaded();
         _ad = ad as google_ads.NativeAd;
-        _isAdLoaded = true;
-        _failedToLoad = false;
       }, onAdFailedToLoad: (ad, error) {
         adLoadListener.onFailedToLoadAd();
-        _failedToLoad = true;
-        _isAdLoaded = false;
       }),
     ).load();
   }
@@ -84,12 +74,6 @@ class AdmobNativeAd extends NativeAd {
           ad: nativeAd,
         ),
       );
-
-  @override
-  bool get isAdLoaded => _isAdLoaded;
-
-  @override
-  bool get adFailedToLoad => _failedToLoad;
 
   @override
   double get height => _nativeSize.height;

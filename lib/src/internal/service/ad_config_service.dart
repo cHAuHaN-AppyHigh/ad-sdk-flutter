@@ -12,25 +12,35 @@ import '../utils/rsa_token_generator.dart';
 class AdConfigService {
   final _configKey = 'ad_sdk_config';
 
-  Future<AdSdkAppConfig?> fetch() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? encodedString = sharedPreferences.getString(_configKey);
-    _syncWithServer();
-    if (encodedString != null) {
-      return AdSdkAppConfig.fromMap(jsonDecode(encodedString));
-    }
+  Future<AdSdkAppConfig?> fetch({
+    String? enforcePackageId,
+    String? enforcePlatform,
+  }) async {
+    try {
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      String? encodedString = sharedPreferences.getString(_configKey);
+      _syncWithServer(enforcePackageId, enforcePlatform);
+      if (encodedString != null) {
+        return AdSdkAppConfig.fromMap(jsonDecode(encodedString));
+      }
+    } catch (_) {}
     return null;
   }
 
-  Future<void> _syncWithServer() async {
+  Future<void> _syncWithServer(
+    String? enforcePackageId,
+    String? enforcePlatform,
+  ) async {
     try {
       String authToken = await RSATokenGenerator().getJWTToken();
       AppInfo appInfo = await AppInfo.fromPlatform();
       final response = await http.post(
         Uri.parse("${AdSdkConstants.baseUrl}${AdSdkConstants.endpoint}"),
         body: {
-          'packageId': appInfo.packageId,
-          'platform': 'FLUTTER-${Platform.isAndroid ? 'ANDROID' : 'IOS'}'
+          'packageId': enforcePackageId ?? appInfo.packageId,
+          'platform': enforcePlatform ??
+              'FLUTTER-${Platform.isAndroid ? 'ANDROID' : 'IOS'}'
         },
         headers: {
           'Authorization': 'Bearer $authToken',

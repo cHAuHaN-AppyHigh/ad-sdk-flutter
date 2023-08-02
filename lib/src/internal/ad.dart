@@ -19,10 +19,6 @@ abstract class Ad {
 }
 
 abstract class WidgetAd {
-  bool get isAdLoaded;
-
-  bool get adFailedToLoad;
-
   double get height;
 
   double get width;

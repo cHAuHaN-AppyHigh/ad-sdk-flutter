@@ -6,14 +6,17 @@ import 'package:flutter/foundation.dart';
 import 'ad_entity.dart';
 import 'internal/listeners/ad_show_listener.dart';
 
-class AdViewEntity extends AdEntity {
-  AdViewEntity(super.appyhighId);
+class AdViewHandler extends AdEntity {
+  AdViewHandler(super.appyhighId);
 
   Future<void> showAd(AdShowListener adShowListener) async {
-    if (ad == null) {
-      throw Exception('Ad Couldn\'t fetch');
+    if (!isActive) {
+      throw Exception('Ad is not active');
     }
-    AdSdkLogger.info('Trying to show Ad ${ad!.adId} with ${ad!.provider}');
+    AdSdkLogger.info('Trying to show Ad $appyhighId ${this.adLoadState}');
+    if (this.adLoadState == null) {
+      loadAd(onAdLoaded: () {}, onAdFailedToLoad: () {});
+    }
     final Completer<AdLoadState> completer = Completer<AdLoadState>();
     StreamSubscription<AdLoadState> subscription =
         onAdLoadStateChanged.listen((event) {
@@ -21,10 +24,10 @@ class AdViewEntity extends AdEntity {
         completer.complete(event);
       }
     });
-    AdLoadState result = await completer.future;
+    AdLoadState adLoadState = await completer.future;
     subscription.cancel();
     resetAdState();
-    return _showAd(result, adShowListener);
+    return _showAd(adLoadState, adShowListener);
   }
 
   Future<void> _showAd(AdLoadState adLoadState, AdShowListener adShowListener) {
