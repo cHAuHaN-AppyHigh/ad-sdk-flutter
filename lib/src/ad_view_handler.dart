@@ -13,7 +13,10 @@ class AdViewHandler extends AdEntity {
     if (!isActive) {
       throw Exception('Ad is not active');
     }
-    AdSdkLogger.info('Trying to show Ad $appyhighId');
+    AdSdkLogger.info('Trying to show Ad $appyhighId ${this.adLoadState}');
+    if (this.adLoadState == null) {
+      loadAd(onAdLoaded: () {}, onAdFailedToLoad: () {});
+    }
     final Completer<AdLoadState> completer = Completer<AdLoadState>();
     StreamSubscription<AdLoadState> subscription =
         onAdLoadStateChanged.listen((event) {
