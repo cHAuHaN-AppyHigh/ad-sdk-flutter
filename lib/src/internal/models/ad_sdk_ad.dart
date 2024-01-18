@@ -1,4 +1,7 @@
 import 'package:adsdk/src/adsdk_state.dart';
+import 'package:adsdk/src/applovin/listener/applovin_appopen_listener.dart';
+import 'package:adsdk/src/applovin/listener/applovin_interstitial_listener.dart';
+import 'package:adsdk/src/applovin/listener/applovin_rewarded_listener.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:applovin_max/applovin_max.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -147,7 +150,7 @@ class AdSdkAd {
       }
     } else if (adProvider == AdProvider.applovin) {
       if (adUnitType == AdUnitType.appOpen) {
-        AppLovinMAX.setAppOpenAdListener(AppOpenAdListener(
+        final adListener = CustomAppOpenAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
           onAdDisplayedCallback: (_) {
@@ -163,32 +166,37 @@ class AdSdkAd {
             AdSdkState.showingAd = false;
             onAdDismissedFullScreenContent?.call(this);
           },
-        ));
+          adId: adUnitId,
+          onAdRevenuePaidCallback: (MaxAd ad) => null,
+        );
+        ApplovinAppOpenListenerHelper.instance.addListener(adListener);
         AppLovinMAX.showAppOpenAd(adUnitId);
       } else if (adUnitType == AdUnitType.interstitial) {
-        AppLovinMAX.setInterstitialListener(
-          InterstitialListener(
-            onAdLoadedCallback: (_) => null,
-            onAdLoadFailedCallback: (_, __) => null,
-            onAdDisplayedCallback: (_) {
-              AdSdkState.showingAd = true;
-              onAdShowedFullScreenContent?.call(this);
-            },
-            onAdDisplayFailedCallback: (ad, error) {
-              AdSdkState.showingAd = false;
-              onAdFailedToShowFullScreenContent?.call(this, error.message);
-            },
-            onAdClickedCallback: (ad) {},
-            onAdHiddenCallback: (_) {
-              AdSdkState.showingAd = false;
-              onAdDismissedFullScreenContent?.call(this);
-            },
-          ),
+        final adListener = CustomInterstitialAdListener(
+          onAdLoadedCallback: (_) => null,
+          onAdLoadFailedCallback: (_, __) => null,
+          onAdDisplayedCallback: (_) {
+            AdSdkState.showingAd = true;
+            onAdShowedFullScreenContent?.call(this);
+          },
+          onAdDisplayFailedCallback: (ad, error) {
+            AdSdkState.showingAd = false;
+            onAdFailedToShowFullScreenContent?.call(this, error.message);
+          },
+          onAdClickedCallback: (ad) {},
+          onAdHiddenCallback: (_) {
+            AdSdkState.showingAd = false;
+            onAdDismissedFullScreenContent?.call(this);
+          },
+          adId: adUnitId,
+          onAdRevenuePaidCallback: (MaxAd ad) => null,
         );
+        ApplovinInterstitialListenerHelper.instance.addListener(adListener);
+
         AppLovinMAX.showInterstitial(adUnitId);
       } else if (adUnitType == AdUnitType.rewarded ||
           adUnitType == AdUnitType.rewardInterstitial) {
-        AppLovinMAX.setRewardedAdListener(RewardedAdListener(
+        final adListener = CustomRewardedAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
           onAdDisplayedCallback: (_) {
@@ -209,7 +217,10 @@ class AdSdkAd {
               onUserEarnedReward(reward.amount, reward.label);
             }
           },
-        ));
+          adId: adUnitId,
+          onAdRevenuePaidCallback: (MaxAd ad) => null,
+        );
+        ApplovinRewardedListenerHelper.instance.addListener(adListener);
         AppLovinMAX.showRewardedAd(adUnitId);
       }
     }
