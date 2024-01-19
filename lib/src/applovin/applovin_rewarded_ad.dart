@@ -9,12 +9,12 @@ abstract class ApplovinRewardedAd {
     final c = Completer<AdSdkRawAd<MaxAd>>();
     final adListener = CustomRewardedAdListener(
       onAdLoadedCallback: (ad) {
-        if (ad.adUnitId == adUnitId) {
+        if (ad.adUnitId == adUnitId && !c.isCompleted) {
           c.complete(AdSdkRawAd(ad: ad));
         }
       },
       onAdLoadFailedCallback: (id, error) {
-        if (id == adUnitId) {
+        if (id == adUnitId && !c.isCompleted) {
           c.complete(AdSdkRawAd(error: error.message));
         }
       },

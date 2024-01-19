@@ -9,10 +9,12 @@ abstract class ApplovinInterstitialAd {
     final c = Completer<AdSdkRawAd<MaxAd>>();
     final adListener = CustomInterstitialAdListener(
       onAdLoadedCallback: (ad) {
-        if (ad.adUnitId == adUnitId) c.complete(AdSdkRawAd(ad: ad));
+        if (ad.adUnitId == adUnitId && !c.isCompleted) {
+          c.complete(AdSdkRawAd(ad: ad));
+        }
       },
       onAdLoadFailedCallback: (id, error) {
-        if (id == adUnitId) {
+        if (id == adUnitId && !c.isCompleted) {
           c.complete(AdSdkRawAd(error: error.message));
         }
       },
