@@ -10,7 +10,6 @@ abstract class AdmobAppOpenAd {
     AppOpenAd.load(
       adUnitId: adUnitId,
       request: AdSdkState.adSdkConfig.adRequest,
-      orientation: AppOpenAd.orientationPortrait,
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) => c.complete(AdSdkRawAd(ad: ad)),
         onAdFailedToLoad: (error) => c.complete(
