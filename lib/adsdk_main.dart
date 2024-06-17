@@ -17,13 +17,14 @@ import 'package:adsdk/src/internal/widgets/hardstop_dialog.dart';
 import 'package:applovin_max/applovin_max.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gdpr_dialog/gdpr_dialog.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'src/admob/gdpr_constent_form.dart';
 class AdSdk {
   static bool _isInitialized = false;
   static bool get isInitialized => _isInitialized;
   static AppLifecycleReactor? appLifecycleReactor;
+  static final admobConsent = AdmobConsentForm();
 
   static Future<void> initialize({
     required String bundleId,
@@ -66,6 +67,7 @@ class AdSdk {
     await MobileAds.instance.initialize();
     await const MethodChannel("adsdk").invokeMethod("registerNativeAds");
     AdSdkLogger.info("Google ads initialized.");
+    admobConsent.fetchConsentInfo();
 
     if (applovinSdkKey != null) {
       if (adSdkConfig.applovinTestDevices.isNotEmpty) {
@@ -158,14 +160,7 @@ class AdSdk {
     appLifecycleReactor?.removeAppStateListener();
   }
 
-  static Future<bool> getConsentForEU({
-    bool isTestMode = false,
-    String testIdentifier = '',
-  }) =>
-      GdprDialog.instance.showDialog(
-        isForTest: isTestMode,
-        testDeviceId: testIdentifier,
-      );
+  static Future<bool> getConsentForEU() => admobConsent.show();
 
   static void showHardStopDialog(BuildContext context) => showDialog(
         context: context,
