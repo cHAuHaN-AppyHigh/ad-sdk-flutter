@@ -228,7 +228,7 @@ class AdSdkAd {
   }
 
   void dispose() {
-    if (adProvider == AdProvider.admob || adProvider == AdProvider.admob) {
+    if (adProvider == AdProvider.admob || adProvider == AdProvider.admanager) {
       ad.dispose();
     }
   }
